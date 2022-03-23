@@ -5,46 +5,45 @@ const io = require("socket.io")(http, {
     origins: ["http://localhost:8080"],
   },
 });
+
 let users = {};
 let me;
+//let date = new Date()
+//.toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"});
 
-// app.get("/", (req, res) => {
-//   res.send("<h1>Hey Socket.io</h1>");
-// });
-
+//Voir Emit cheatsheet: https://socket.io/fr/docs/v4/emit-cheatsheet/
+//Crée un socket lors d'une nouvelle connexion
 io.on("connection", (socket) => {
   console.log("a user connected");
-  
-  socket.on("connect_error", (e) => {
-    console.log('ERROR', e)
-});
 
+  //Ecoute le socket lors d'une déconnexion et supprime l'utilisateurs déconnecté du tableau + envoi une MAJ de la liste des utilisateurs connectés
   socket.on("disconnect", () => {
-    delete users.me;
+    delete users[socket.id];
     console.log("user disconnected");
+    setTimeout(() => {
+      io.emit("users", users);
+    }, 1000);
   });
 
-  socket.on("my message", (msg) => {
-    io.emit("my message", msg);
-    console.log(users);
-    console.log(me);
+  //Ecoute "my message" en provenance du/des client et renvoi les informations/messages à tous les utilisateurs connectés
+  socket.on("my message", (message) => {
+    io.emit("my message", {
+      message: message.message,
+      user: message.user,
+      h: message.hour,
+      m: message.minute,
+    });
   });
 
+  //Ecoute "users" en provenance du/des client et envoi le nom de l'utilisateur qui vient de se connecter + la liste de utilisateurs MAJ
   socket.on("users", (data) => {
     me = data;
     //users.push({ user: data, socketId: socket.id });
-    users[me] = me;
-    io.emit("User", me);
+    users[socket.id] = me;
+    io.emit("User", { connect: me, text: " vient de se connecter" });
+    io.emit("users", users);
   });
-  io.emit("users", users);
 });
-
-// io.on('connection', (socket) => {
-//   socket.on('my message', (msg) => {
-//     io.emit('my broadcast', `server: ${msg}`);
-//   });
-// });
-
 http.listen(3000, () => {
   console.log("listening on *:3000");
 });
