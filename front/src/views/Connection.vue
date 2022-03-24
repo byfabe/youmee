@@ -7,6 +7,7 @@
         type="text"
         placeholder="Pseudo"
         @keydown.enter.prevent.stop="connection"
+        maxlength="10"
         autofocus
       />
       <router-link to="home">

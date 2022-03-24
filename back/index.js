@@ -43,6 +43,11 @@ io.on("connection", (socket) => {
     io.emit("User", { connect: me, text: " vient de se connecter" });
     io.emit("users", users);
   });
+
+  //Ecoute typing 
+  socket.on("typing", (data) => {
+    socket.broadcast.emit("typing", data)
+  });
 });
 http.listen(3000, () => {
   console.log("listening on *:3000");
