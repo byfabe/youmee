@@ -91,9 +91,9 @@
     <div class="right">
       <div class="title-contacts"><span>CONTACTS</span></div>
       <div class="contacts">
-        <div class="contact" v-for="user in users" :key="user">
-          <img src="../assets/chicken.png" alt="" />
-          <span>{{ user }}</span>
+        <div class="contact" v-for="user in getUsers" :key="user">
+          <img :src="require(`@/assets/${user.avatar}`)" alt="Avatar" />
+          <span>{{ user.user }}</span>
         </div>
       </div>
     </div>
@@ -181,9 +181,9 @@ export default {
       //scroll
       let content = this.$refs.messagesContainer;
       content.scrollTop = content.scrollHeight;
-      
+
       //textarea.style.height = "63px";
-      
+
       //resize
       let scrollHeight = event.target.scrollHeight;
       textarea.style.height = `${scrollHeight}px`;
@@ -213,7 +213,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["getUser"]),
+    ...mapGetters(["getUser", "getUsers"]),
   },
 
   updated() {
@@ -228,7 +228,8 @@ export default {
 
     // Ecoute "users" sur le serveur et push la liste des utilisateurs connectés
     socket.on("users", (data) => {
-      this.users = data;
+      //this.users = data;
+      this.$store.commit("ADD_USERS", data);
     });
 
     // Ecoute "User" sur le serveur et push le nom de l'utulisateur qui se connecte dans le chat
@@ -443,18 +444,25 @@ export default {
     & .contacts {
       display: flex;
       flex-direction: column;
+      align-items: center;
       font-size: 16px;
       color: #d6d6d6;
-      margin: 2% 5%;
+      margin: 2% 0;
       & .contact {
         display: flex;
         align-items: center;
+        width: 90%;
+        &:hover {
+          background: #242526;
+          border-radius: 10px;
+        }
         & span {
           margin: 5% 0;
         }
         & img {
-          width: 20px;
+          width: 30px;
           margin-right: 3%;
+          margin-left: 10px;
         }
       }
     }

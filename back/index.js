@@ -22,14 +22,15 @@ io.on("connection", (socket) => {
   //Ecoute le socket lors d'une déconnexion et supprime l'utilisateurs déconnecté du tableau + envoi une MAJ de la liste des utilisateurs connectés
   socket.on("disconnect", () => {
     //delete users[socket.id];
-    const removeIndex = users.findIndex( item => item.socket === socket.id );
-    users.splice( removeIndex, 1 );
+    const removeIndex = users.findIndex((item) => item.socket === socket.id);
+    if (removeIndex >= 0) {
+      users.splice(removeIndex, 1);
+    }
 
     console.log("user disconnected");
 
     setTimeout(() => {
       io.emit("users", users);
-      console.log(users);
     }, 1000);
   });
 

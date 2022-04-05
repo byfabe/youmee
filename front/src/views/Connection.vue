@@ -1,5 +1,7 @@
 <template>
   <div class="container-connection">
+    <span class="youmee alias" v-if="!getUser">alias.</span>
+    <span class="youmee hidden face">avatar.</span>
     <div class="title"><h1>youmee.</h1></div>
     <div class="input">
       <input
@@ -59,8 +61,12 @@ export default {
     toggleHidden() {
       let avatar = document.querySelector(".avatar");
       let input = document.querySelector("input");
+      let alias = document.querySelector(".alias");
+      let face = document.querySelector(".face");
       avatar.classList.toggle("hidden");
       input.classList.toggle("hidden");
+      alias.classList.toggle("hidden");
+      face.classList.toggle("hidden");
     },
   },
   computed: {
@@ -76,6 +82,16 @@ export default {
   flex-direction: column;
   height: 100vh;
   background: #242526;
+  & .youmee {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 10px 20px;
+    font-size: 26px;
+    font-family: "Bubblegum Sans", cursive;
+    color: #f1f1f1;
+    user-select: none;
+  }
   & .title {
     margin: 5% 0;
     font-size: 56px;
