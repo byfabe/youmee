@@ -2,9 +2,13 @@ const app = require("express")();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http, {
   cors: {
-    origins: ["http://localhost:8080"],
+    origins: ["https://golden-florentine-41f4da.netlify.app/"], // https://golden-florentine-41f4da.netlify.app/   // http://localhost:8080
+
   },
 });
+let cors = require('cors')
+
+app.use(cors())
 
 let users = {};
 let me;
@@ -49,6 +53,6 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("typing", data)
   });
 });
-http.listen(3000, () => {
+http.listen(process.env.PORT || 3000, () => {
   console.log("listening on *:3000");
 });

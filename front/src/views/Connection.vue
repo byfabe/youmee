@@ -16,6 +16,11 @@
         </p>
       </router-link>
     </div>
+    <div class="avatar">
+      <div class="select-avatar">
+        
+      </div>
+    </div>
     <footer><a href="mailto:byfabe@gmail.com">"byfabe"</a></footer>
   </div>
 </template>
@@ -23,7 +28,7 @@
 <script>
 import { mapGetters } from "vuex";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:3000");
+const socket = io("https://youmeechat.herokuapp.com"); // https://youmeechat.herokuapp.com // http://localhost:3000
 export default {
   methods: {
     //Envoi les informations de l'input au serveur // Ajoute l'utisateur dans le store de Vue // Renvoi vers la page "home"

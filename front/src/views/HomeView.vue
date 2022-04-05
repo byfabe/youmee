@@ -45,18 +45,36 @@
         <form action="" id="form">
           <textarea
             id="input"
-            placeholder="Envoyer un message..."
-            @keydown.enter.prevent.stop="sendMessage"
+            v-model="inputValue"
+            placeholder="Envoyer un message dans #Général..."
+            @keydown.enter.exact.prevent.stop="sendMessage"
+            @keyup="scroll($event)"
             @input="isTyping"
             @click="removeEmoji"
+            @keydown.enter.shift.exact.prevent="inputValue += '\n'"
             maxlength="450"
             rows="1"
           />
           <Picker
             :data="emojiIndex"
             set="twitter"
-            @select="showEmoji"
+            @select="showEmoji($event)"
             class="picker hidden"
+            native
+            :i18n="{
+              categories: {
+                recent: 'Fréquemment utilisés',
+                smileys: 'Smileys & Emoticon',
+                people: 'Personnes',
+                nature: 'Animaux et Nature',
+                foods: 'Nourriture et boisson',
+                activity: 'Activités',
+                places: 'Voyage',
+                objects: 'Objets',
+                symbols: 'Symboles',
+                flags: 'Drapeaux',
+              },
+            }"
           />
           <span class="emoji-btn" @click="hiddenEmoji">😜</span>
           <div class="typing">
@@ -91,7 +109,7 @@ let emojiIndex = new EmojiIndex(data);
 
 import { mapGetters } from "vuex";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:3000");
+const socket = io("https://youmeechat.herokuapp.com"); // https://youmeechat.herokuapp.com // http://localhost:3000
 export default {
   components: {
     Picker,
@@ -105,6 +123,7 @@ export default {
       user: "",
       typing: false,
       typingUser: "",
+      inputValue: "",
     };
   },
   methods: {
@@ -130,6 +149,7 @@ export default {
         //Envoi typing false // remet le textarea vide // remet la hauteur du textarea par défaut
         socket.emit("typing", { typing: false });
         textarea.value = "";
+        this.inputValue = "";
         textarea.style.height = "auto";
       }
     },
@@ -155,19 +175,27 @@ export default {
       textarea.focus();
     },
 
-    //Scroll les messages automatiquement vers le bas
-    scroll() {
+    //Scroll les messages automatiquement vers le bas // et resize automatiquement le textarea
+    scroll(event) {
+      let textarea = document.querySelector("textarea");
+      //scroll
       let content = this.$refs.messagesContainer;
-
       content.scrollTop = content.scrollHeight;
+      
+      //textarea.style.height = "63px";
+      
+      //resize
+      let scrollHeight = event.target.scrollHeight;
+      textarea.style.height = `${scrollHeight}px`;
     },
 
     //Ajoute les emoji dans le textarea
     showEmoji(emoji) {
       this.emojisOutput = emoji.native;
       let textarea = document.querySelector("textarea");
-      textarea.value += this.emojisOutput;
-      console.log(this.emojisOutput);
+      if (textarea.value.length < 450) {
+        textarea.value += this.emojisOutput;
+      }
     },
 
     //Toggle la classe "hidden" pour afficher ou non les emoji
@@ -379,8 +407,8 @@ export default {
       }
       & .emoji-btn {
         position: absolute;
-        top: 3%;
-        right: 0;
+        top: 4%;
+        right: 0.5%;
         font-size: 30px;
         cursor: pointer;
         opacity: 0.5;
