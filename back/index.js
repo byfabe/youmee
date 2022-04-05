@@ -2,15 +2,14 @@ const app = require("express")();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http, {
   cors: {
-    origins: ["https://golden-florentine-41f4da.netlify.app/"], // https://golden-florentine-41f4da.netlify.app/   // http://localhost:8080
-
+    origins: ["http://localhost:8080"], // https://golden-florentine-41f4da.netlify.app/   // http://localhost:8080
   },
 });
-let cors = require('cors')
+let cors = require("cors");
 
-app.use(cors())
+app.use(cors());
 
-let users = {};
+let users = [];
 let me;
 //let date = new Date()
 //.toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"});
@@ -22,10 +21,15 @@ io.on("connection", (socket) => {
 
   //Ecoute le socket lors d'une déconnexion et supprime l'utilisateurs déconnecté du tableau + envoi une MAJ de la liste des utilisateurs connectés
   socket.on("disconnect", () => {
-    delete users[socket.id];
+    //delete users[socket.id];
+    const removeIndex = users.findIndex( item => item.socket === socket.id );
+    users.splice( removeIndex, 1 );
+
     console.log("user disconnected");
+
     setTimeout(() => {
       io.emit("users", users);
+      console.log(users);
     }, 1000);
   });
 
@@ -41,16 +45,18 @@ io.on("connection", (socket) => {
 
   //Ecoute "users" en provenance du/des client et envoi le nom de l'utilisateur qui vient de se connecter + la liste de utilisateurs MAJ
   socket.on("users", (data) => {
-    me = data;
+    me = data.user;
     //users.push({ user: data, socketId: socket.id });
-    users[socket.id] = me;
+    //users[socket.id] = me;
+    users.push({ socket: socket.id, avatar: data.avatar, user: data.user });
     io.emit("User", { connect: me, text: " vient de se connecter" });
     io.emit("users", users);
+    console.log(users);
   });
 
-  //Ecoute typing 
+  //Ecoute typing
   socket.on("typing", (data) => {
-    socket.broadcast.emit("typing", data)
+    socket.broadcast.emit("typing", data);
   });
 });
 http.listen(process.env.PORT || 3000, () => {

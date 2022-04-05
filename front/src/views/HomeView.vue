@@ -109,7 +109,7 @@ let emojiIndex = new EmojiIndex(data);
 
 import { mapGetters } from "vuex";
 import { io } from "socket.io-client";
-const socket = io("https://youmeechat.herokuapp.com"); // https://youmeechat.herokuapp.com // http://localhost:3000
+const socket = io("http://localhost:3000"); // https://youmeechat.herokuapp.com // http://localhost:3000
 export default {
   components: {
     Picker,
