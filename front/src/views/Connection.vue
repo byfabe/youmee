@@ -31,7 +31,7 @@
     </div>
     <!-- SELECT AVATAR FIN-->
 
-    <footer><a href="mailto:byfabe@gmail.com">"byfabe"</a></footer>
+    <footer><a href="https://www.rivetportfolio.ovh/#/" target="blank">💠 portfolio 💠</a></footer>
   </div>
 </template>
 

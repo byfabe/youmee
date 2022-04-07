@@ -11,15 +11,17 @@
       <div class="rooms">
         <p class="rooms-title">Rooms</p>
         <div class="box-rooms">
-          <p class="room">#Général</p>
-          <p class="room">#Room 1</p>
-          <p class="room">#Room 2</p>
-          <p class="room">#Room 3</p>
+          <p data-room="Général" class="room active" @click="dataRoom($event)">
+            #️⃣ Général
+          </p>
+          <p data-room="Room 1" class="room" @click="dataRoom">🟢 Room 1</p>
+          <p data-room="Room 2" class="room" @click="dataRoom">🟡 Room 2</p>
+          <p data-room="Room 3" class="room" @click="dataRoom">🟠 Room 3</p>
         </div>
       </div>
       <div class="userManage">
         <span>@{{ getUser }}</span>
-        <a href="/"><span>Se déconnecter</span></a>
+        <a href="/"><img src="../assets/deconnect.png" alt="" /></a>
       </div>
     </div>
     <!-- LEFT FIN-->
@@ -46,7 +48,7 @@
           <textarea
             id="input"
             v-model="inputValue"
-            placeholder="Envoyer un message dans #Général..."
+            :placeholder="'Envoyer un message dans ' + placeholderRoom + '...'"
             @keydown.enter.exact.prevent.stop="sendMessage"
             @keyup="scroll($event)"
             @input="isTyping"
@@ -61,6 +63,7 @@
             @select="showEmoji($event)"
             class="picker hidden"
             native
+            exclude="[flags]"
             :i18n="{
               categories: {
                 recent: 'Fréquemment utilisés',
@@ -72,7 +75,6 @@
                 places: 'Voyage',
                 objects: 'Objets',
                 symbols: 'Symboles',
-                flags: 'Drapeaux',
               },
             }"
           />
@@ -105,7 +107,10 @@
 import data from "emoji-mart-vue-fast/data/all.json";
 import { Picker, EmojiIndex } from "emoji-mart-vue-fast/src";
 import "emoji-mart-vue-fast/css/emoji-mart.css";
-let emojiIndex = new EmojiIndex(data);
+let exclude = ["flags"];
+let emojiIndex = new EmojiIndex(data, {
+  exclude,
+});
 
 import { mapGetters } from "vuex";
 import { io } from "socket.io-client";
@@ -114,6 +119,7 @@ export default {
   components: {
     Picker,
   },
+  setup() {},
   data() {
     return {
       emojiIndex: emojiIndex,
@@ -124,12 +130,14 @@ export default {
       typing: false,
       typingUser: "",
       inputValue: "",
+      placeholderRoom: "Général",
     };
   },
   methods: {
     sendMessage() {
       let textarea = document.querySelector("textarea");
       let minute = new Date().getMinutes();
+      let room = document.querySelector(".box-rooms p.active");
 
       //Ajoute un "0" si les minutes sont inférieurs à 10 pour éviter 15h1 (par ex.)
       if (minute < 10) {
@@ -144,9 +152,10 @@ export default {
           message: textarea.value,
           minute: minute,
           hour: new Date().getHours(),
+          room: room.dataset.room,
         });
 
-        //Envoi typing false // remet le textarea vide // remet la hauteur du textarea par défaut
+        //Envoi typing false // remet le textarea vide // remet la hauteur du textarea par défaut -> Déclenché par la touche "Entrée"
         socket.emit("typing", { typing: false });
         textarea.value = "";
         this.inputValue = "";
@@ -157,13 +166,17 @@ export default {
     //Detecte si il y a une saisie dans le textarea // et resize automatiquement la hauteur du textarea
     isTyping() {
       let textarea = document.querySelector("textarea");
+      const room = document.querySelector(".box-rooms p.active");
 
       textarea.style.height = "auto";
       textarea.style.height = textarea.scrollHeight + "px";
 
       if (textarea.value != "") {
-        socket.emit("typing", { user: this.getUser, typing: true });
-        console.log("typing");
+        socket.emit("typing", {
+          user: this.getUser,
+          typing: true,
+          room: room.dataset.room,
+        });
       } else {
         socket.emit("typing", { typing: false });
       }
@@ -205,13 +218,62 @@ export default {
       picker.classList.toggle("hidden");
       btn.classList.toggle("opacity");
     },
+
+    //Cache la box emoji au clic dans le textarea
     removeEmoji() {
       let picker = document.querySelector(".picker");
       if (!picker.classList.contains("hidden")) {
         picker.classList.add("hidden");
       }
     },
+
+    //On change d'onglet (room) au clic et on le rend actif // On efface les messages
+    changeRoom() {
+      document.querySelectorAll(".box-rooms p").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          if (!this.classList.contains("active")) {
+            const active = document.querySelector(".box-rooms p.active");
+            active.classList.remove("active");
+            this.classList.add("active");
+            let message = document.querySelectorAll(".message");
+            for (let i in message) {
+              message[i].remove();
+            }
+            this.messages = [];
+          }
+        });
+      });
+    },
+
+    // On emit le nom de la room dans lequel on entre avec enter_room // On emit le nom de la room dans lequel on sort avec leave_room
+    // On remet le focus dans le textarea au changement d'onglet
+    // On change le placeholder avec le nom de la room correspondant
+    dataRoom(event) {
+      const active = document.querySelector(".box-rooms p.active");
+      let target = event.target;
+      socket.emit("enter_room", target.dataset.room);
+      socket.emit("leave_room", active.dataset.room);
+      this.textareaFocus();
+      this.placeholderRoom = target.dataset.room;
+      ///////AJOUTE TYPING EVENT/////////
+      socket.emit("typing", { typing: false });
+      this.typing = false;
+    },
+
+    //Se connecte au chargement de la page (mounted) dans la room #general
+    connect() {
+      socket.emit("enter_room", "Général");
+    },
+
+    // Quand l'onglet redevient actif, le title réaffiche "youmee."
+    focusWindow() {
+      window.addEventListener("focus", function () {
+        let title = document.querySelector("title");
+        title.innerText = "youmee.";
+      });
+    },
   },
+
   computed: {
     ...mapGetters(["getUser", "getUsers"]),
   },
@@ -221,9 +283,17 @@ export default {
   },
 
   mounted() {
+    this.changeRoom();
+    this.connect();
+    this.focusWindow();
+
     //Ecoute "my message" sur le serveur et push le message si un message est écouté
     socket.on("my message", (data) => {
+      let title = document.querySelector("title");
       this.messages.push(data);
+      if (document.hidden) {
+        title.innerText = "Nouveaux messages...";
+      }
     });
 
     // Ecoute "users" sur le serveur et push la liste des utilisateurs connectés
@@ -241,6 +311,12 @@ export default {
     socket.on("typing", (data) => {
       this.typing = data.typing;
       this.typingUser = data.user;
+      console.log(data);
+    });
+
+    //Arrivé d'un utilisateur dans une room
+    socket.on("connect", () => {
+      socket.emit("enter_room", "Général");
     });
 
     // Déclenche la fonction "textareaFocus" à la création de la page
@@ -289,21 +365,35 @@ export default {
         width: auto;
         border-left: 1px solid rgba(255, 255, 255, 0.178);
         margin-left: 10%;
+        & .active {
+          background: #242526;
+          border-radius: 10px;
+        }
       }
       & .room {
+        width: 90%;
         padding: 10px 10px;
+        margin-left: 10px;
+        cursor: pointer;
       }
     }
     & .userManage {
       display: flex;
       align-items: center;
-      justify-content: space-around;
+      justify-content: space-between;
       width: 100%;
       height: 7%;
       border-top: 1px solid #f1f1f14d;
       background: #151616bb;
+      & span {
+        margin-left: 10%;
+      }
       & a {
-        color: #f1f1f1;
+        display: flex;
+        & img {
+          width: 10%;
+          margin-right: 10%;
+        }
       }
     }
   }
@@ -404,7 +494,8 @@ export default {
       & .emoji-mart-category-label {
         background: #37383a;
         color: #f1f1f1;
-        padding: 5px 0;
+        padding: 5px 4px;
+        border-radius: 5px;
       }
       & .emoji-btn {
         position: absolute;
@@ -452,6 +543,7 @@ export default {
         display: flex;
         align-items: center;
         width: 90%;
+        cursor: pointer;
         &:hover {
           background: #242526;
           border-radius: 10px;
