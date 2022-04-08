@@ -116,7 +116,7 @@ let emojiIndex = new EmojiIndex(data, {
 
 import { mapGetters } from "vuex";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:3000"); // https://youmeechat.herokuapp.com // http://localhost:3000
+const socket = io("https://youmeechat.herokuapp.com"); // https://youmeechat.herokuapp.com // http://localhost:3000
 export default {
   components: {
     Picker,
@@ -259,7 +259,7 @@ export default {
       ///////AJOUTE TYPING EVENT/////////
       socket.emit("typing", { typing: false });
       this.typing = false;
-      
+
       //On filtre les messages et on ajoute les messages correspondant à la room dans "roomMessages"
       this.roomMessages = this.getMessages.filter(function (el) {
         return el.room === target.dataset.room;
@@ -311,6 +311,16 @@ export default {
       console.log("roomMessages", this.roomMessages);
     });
 
+    //On reçoit le tableau de tous les messages
+    socket.on("messages", (data) => {
+      console.log("message", data);
+      this.$store.commit("ADD_MESSAGES", data);
+      const active = document.querySelector(".box-rooms p.active");
+      this.roomMessages = this.getMessages.filter(function (el) {
+        return el.room === active.dataset.room;
+      });
+    });
+
     // Ecoute "users" sur le serveur et push la liste des utilisateurs connectés
     socket.on("users", (data) => {
       //this.users = data;
@@ -319,7 +329,7 @@ export default {
 
     // Ecoute "User" sur le serveur et push le nom de l'utulisateur qui se connecte dans le chat
     socket.on("User", (data) => {
-      this.messages.push(data);
+      this.roomMessages.push(data);
     });
 
     //Ecoute typing

@@ -2,7 +2,7 @@ const app = require("express")();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http, {
   cors: {
-    origins: ["http://localhost:8080"], // https://golden-florentine-41f4da.netlify.app/   // http://localhost:8080
+    origins: ["https://golden-florentine-41f4da.netlify.app/"], // https://golden-florentine-41f4da.netlify.app/   // http://localhost:8080
   },
 });
 let cors = require("cors");
@@ -17,6 +17,7 @@ let me;
 //Crée un socket lors d'une nouvelle connexion
 io.on("connection", (socket) => {
   console.log("a user connected");
+  
 
   //Ecoute le socket lors d'une déconnexion et supprime l'utilisateurs déconnecté du tableau + envoi une MAJ de la liste des utilisateurs connectés
   socket.on("disconnect", () => {
@@ -34,7 +35,7 @@ io.on("connection", (socket) => {
 
   //Ecoute "my message" en provenance du/des client et renvoi les informations/messages à tous les utilisateurs connectés
   socket.on("my message", (message) => {
-    messages.push(message)
+    messages.push(message);
     io.in(message.room).emit("my message", messages);
   });
 
@@ -50,20 +51,21 @@ io.on("connection", (socket) => {
   socket.on("typing", (data) => {
     socket.to(data.room).emit("typing", data);
     if (data.typing === false) {
-      socket.broadcast.emit('typing', data)
+      socket.broadcast.emit("typing", data);
     }
   });
 
   //Ecoute les entrées des rooms
   socket.on("enter_room", (data) => {
-    socket.join(data)
+    socket.join(data);
+    socket.emit("messages", messages);
     console.log(socket.rooms);
-  })
+  });
 
   //Ecoute les sorties des rooms
   socket.on("leave_room", (data) => {
-    socket.leave(data)
-  })
+    socket.leave(data);
+  });
 });
 
 http.listen(process.env.PORT || 3000, () => {
