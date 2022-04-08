@@ -9,6 +9,7 @@ let cors = require("cors");
 
 app.use(cors());
 
+let messages = [];
 let users = [];
 let me;
 
@@ -33,14 +34,8 @@ io.on("connection", (socket) => {
 
   //Ecoute "my message" en provenance du/des client et renvoi les informations/messages à tous les utilisateurs connectés
   socket.on("my message", (message) => {
-    console.log(message);
-    io.in(message.room).emit("my message", {
-      message: message.message,
-      user: message.user,
-      h: message.hour,
-      m: message.minute,
-      room: message.room
-    });
+    messages.push(message)
+    io.in(message.room).emit("my message", messages);
   });
 
   //Ecoute "users" en provenance du/des client et envoi le nom de l'utilisateur qui vient de se connecter + la liste de utilisateurs MAJ
@@ -49,7 +44,6 @@ io.on("connection", (socket) => {
     users.push({ socket: socket.id, avatar: data.avatar, user: data.user });
     io.emit("User", { connect: me, text: " vient de se connecter" });
     io.emit("users", users);
-    console.log(users);
   });
 
   //Ecoute typing
@@ -69,7 +63,6 @@ io.on("connection", (socket) => {
   //Ecoute les sorties des rooms
   socket.on("leave_room", (data) => {
     socket.leave(data)
-    console.log(socket.rooms);
   })
 });
 

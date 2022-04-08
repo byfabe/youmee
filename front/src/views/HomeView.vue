@@ -29,11 +29,13 @@
     <!-- MID DEBUT -->
     <div class="mid">
       <div class="messages" ref="messagesContainer">
-        <div v-for="message in messages" :key="message" class="message">
+        <div v-for="message in roomMessages" :key="message" class="message">
           <div class="box-user" v-if="message.user">
             <div class="top-user">
               <span class="message-user">{{ message.user }}</span>
-              <span class="message-date">{{ message.h }}h{{ message.m }}</span>
+              <span class="message-date"
+                >{{ message.hour }}h{{ message.minute }}</span
+              >
             </div>
             <div class="bot-user">
               <p class="message-content">{{ message.message }}</p>
@@ -124,8 +126,9 @@ export default {
     return {
       emojiIndex: emojiIndex,
       emojisOutput: "",
-      users: [],
-      messages: [],
+      users: [], //Verification
+      messages: [], // Verification
+      roomMessages: [],
       user: "",
       typing: false,
       typingUser: "",
@@ -195,8 +198,6 @@ export default {
       let content = this.$refs.messagesContainer;
       content.scrollTop = content.scrollHeight;
 
-      //textarea.style.height = "63px";
-
       //resize
       let scrollHeight = event.target.scrollHeight;
       textarea.style.height = `${scrollHeight}px`;
@@ -236,10 +237,9 @@ export default {
             active.classList.remove("active");
             this.classList.add("active");
             let message = document.querySelectorAll(".message");
-            for (let i in message) {
-              message[i].remove();
-            }
-            this.messages = [];
+            // for (let i in message) {
+            //   message[i].remove();
+            // }
           }
         });
       });
@@ -255,9 +255,15 @@ export default {
       socket.emit("leave_room", active.dataset.room);
       this.textareaFocus();
       this.placeholderRoom = target.dataset.room;
+
       ///////AJOUTE TYPING EVENT/////////
       socket.emit("typing", { typing: false });
       this.typing = false;
+      
+      //On filtre les messages et on ajoute les messages correspondant à la room dans "roomMessages"
+      this.roomMessages = this.getMessages.filter(function (el) {
+        return el.room === target.dataset.room;
+      });
     },
 
     //Se connecte au chargement de la page (mounted) dans la room #general
@@ -275,7 +281,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(["getUser", "getUsers"]),
+    ...mapGetters(["getUser", "getUsers", "getMessages"]),
   },
 
   updated() {
@@ -290,10 +296,19 @@ export default {
     //Ecoute "my message" sur le serveur et push le message si un message est écouté
     socket.on("my message", (data) => {
       let title = document.querySelector("title");
-      this.messages.push(data);
+      const active = document.querySelector(".box-rooms p.active");
+
+      this.$store.commit("ADD_MESSAGES", data);
+      //this.messages.push(data);
+      this.roomMessages = this.getMessages.filter(function (el) {
+        return el.room === active.dataset.room;
+      });
+
       if (document.hidden) {
         title.innerText = "Nouveaux messages...";
       }
+      console.log("messages", this.messages);
+      console.log("roomMessages", this.roomMessages);
     });
 
     // Ecoute "users" sur le serveur et push la liste des utilisateurs connectés
@@ -311,7 +326,6 @@ export default {
     socket.on("typing", (data) => {
       this.typing = data.typing;
       this.typingUser = data.user;
-      console.log(data);
     });
 
     //Arrivé d'un utilisateur dans une room
@@ -390,9 +404,10 @@ export default {
       }
       & a {
         display: flex;
+        justify-content: flex-end;
         & img {
           width: 10%;
-          margin-right: 10%;
+          margin-right: 11%;
         }
       }
     }
@@ -422,6 +437,7 @@ export default {
         border-radius: 10px;
         margin: 2% 0;
         font-family: "Roboto", sans-serif;
+        word-break: break-word;
         & .box-user {
           display: flex;
           flex-direction: column;
