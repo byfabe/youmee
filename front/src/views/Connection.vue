@@ -31,7 +31,11 @@
     </div>
     <!-- SELECT AVATAR FIN-->
 
-    <footer><a href="https://www.rivetportfolio.ovh/#/" target="blank">💠 portfolio 💠</a></footer>
+    <footer>
+      <a href="https://www.rivetportfolio.ovh/#/" target="blank"
+        >💠 portfolio 💠</a
+      >
+    </footer>
   </div>
 </template>
 
@@ -151,5 +155,25 @@ export default {
 }
 .hidden {
   display: none !important;
+}
+
+@media screen and (max-width: 1144px) {
+  .container-connection {
+    & .title {
+      font-size: clamp(25px, 5vw, 30px);
+      margin-top: 100px;
+    }
+    & .input {
+      display: flex;
+      justify-content: center;
+      & input {
+        width: 80%;
+      }
+    }
+    & .avatar {
+      width: 100%;
+      margin-top: 50px;
+    }
+  }
 }
 </style>

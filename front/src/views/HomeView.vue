@@ -12,13 +12,21 @@
         <p class="rooms-title">Rooms</p>
         <div class="box-rooms">
           <p data-room="Général" class="room active" @click="dataRoom($event)">
-            #️⃣ Général
+            #️⃣<span class="responsive-room">Général</span>
           </p>
-          <p data-room="Room 1" class="room" @click="dataRoom">🟢 Room 1</p>
-          <p data-room="Room 2" class="room" @click="dataRoom">🟡 Room 2</p>
-          <p data-room="Room 3" class="room" @click="dataRoom">🟠 Room 3</p>
+          <p data-room="Room 1" class="room" @click="dataRoom">
+            🟢 <span class="responsive-room">Room 1</span>
+          </p>
+          <p data-room="Room 2" class="room" @click="dataRoom">
+            🟡 <span class="responsive-room">Room 1</span>
+          </p>
+          <p data-room="Room 3" class="room" @click="dataRoom">
+            🟠 <span class="responsive-room">Room 1</span>
+          </p>
         </div>
       </div>
+
+      <!-- NOM UTILISATEUR ET BOUTON DECONNECT -->
       <div class="userManage">
         <span>@{{ getUser }}</span>
         <a href="/"><img src="../assets/deconnect.png" alt="" /></a>
@@ -416,7 +424,7 @@ export default {
         display: flex;
         justify-content: flex-end;
         & img {
-          width: 10%;
+          width: clamp(20px, 10%, 20px);
           margin-right: 11%;
         }
       }
@@ -591,5 +599,58 @@ export default {
 }
 .opacity {
   opacity: 1 !important;
+}
+
+// MEDIA QUERIE 1144px//
+@media screen and (max-width: 1144px) {
+  .container-home {
+    & .top {
+      & p {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    & .left {
+      align-items: center;
+      width: 15%;
+      & .rooms-title {
+        display: none;
+      }
+      & .responsive-room {
+        display: none;
+      }
+      & .rooms {
+        & .box-rooms {
+          margin-left: 0;
+          & .active {
+            background: none;
+          }
+        }
+        & .room {
+          padding: 10px 0;
+        }
+      }
+      & .userManage {
+        & span {
+          display: none;
+        }
+        & a {
+          justify-content: center;
+        }
+      }
+    }
+    & .mid {
+      width: 85%;
+    }
+    & .right {
+      display: none;
+    }
+  }
+  textarea {
+    font-size: 12px !important;
+  }
+  .emoji-btn {
+    font-size: 25px !important;
+  }
 }
 </style>
