@@ -12,16 +12,16 @@
         <p class="rooms-title">Rooms</p>
         <div class="box-rooms">
           <p data-room="Général" class="room active" @click="dataRoom($event)">
-            #️⃣<span class="responsive-room">Général</span>
+            #️⃣<span class="responsive-room" data-room="Général" @click="dataRoom($event)">Général</span>
           </p>
-          <p data-room="Room 1" class="room" @click="dataRoom">
-            🟢 <span class="responsive-room">Room 1</span>
+          <p data-room="Room 1" class="room" @click="dataRoom($event)">
+            🟢 <span class="responsive-room" data-room="Room 1" @click="dataRoom($event)">Room 1</span>
           </p>
-          <p data-room="Room 2" class="room" @click="dataRoom">
-            🟡 <span class="responsive-room">Room 1</span>
+          <p data-room="Room 2" class="room" @click="dataRoom($event)">
+            🟡 <span class="responsive-room" data-room="Room 2" @click="dataRoom($event)">Room 2</span>
           </p>
-          <p data-room="Room 3" class="room" @click="dataRoom">
-            🟠 <span class="responsive-room">Room 1</span>
+          <p data-room="Room 3" class="room" @click="dataRoom($event)">
+            🟠 <span class="responsive-room" data-room="Room 3" @click="dataRoom($event)">Room 3</span>
           </p>
         </div>
       </div>
